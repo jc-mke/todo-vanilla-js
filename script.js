@@ -1,21 +1,49 @@
 import { DONE, UNDONE } from './constants.js';
 
 document.getElementById('new-to-do-input-button').addEventListener('click', handleToDoListItemCreation);
-let toDoIds = []; 
+document.getElementById('to-do-filter').addEventListener('change', function(e) {
+    filterToDosBasedOnEvent(e);
+});
 
-function selectAllCheckboxesWithoutEventListeners() {
-    return document.querySelectorAll('input.to-do-checkbox-without-listener');
+let toDoIds = [];
+
+function filterToDosBasedOnEvent(e) {
+    console.log(`changed to do filter to value: ${e.target.value}`);
+    const filterValue = e.target.value;
+    let doneToDos = document.getElementsByClassName(DONE);
+    let undoneToDos = document.getElementsByClassName(UNDONE);
+    const hiddenAttribute = document.createAttribute('hidden');
+    
+    if (filterValue.toLowerCase() === DONE) {
+        addHiddenAttributeForToDoListItems(hiddenAttribute, undoneToDos);
+        removeHiddenAttributeFromToDoListItems(doneToDos);
+    } else {
+        addHiddenAttributeForToDoListItems(hiddenAttribute, doneToDos);
+        removeHiddenAttributeFromToDoListItems(undoneToDos);
+    }
+
 }
 
-function addEventListenersForCheckboxes(checkboxes) {
-    checkboxes.forEach(function(checkbox) {
-        console.log(`CHECKBOX CLASS: ${checkbox.className}`);
-        checkbox.className = 'to-do-checkbox';
-        checkbox.addEventListener('change', function() {
-            Array.from(checkboxes)
-            .map(i => markToDoListItemDoneOrUndone(i));
-        })
-    })
+function addHiddenAttributeForToDoListItems(hiddenAttribute, toDosToHide) {
+        for (let toDoToHide of toDosToHide) {
+        toDoToHide.setAttributeNode(hiddenAttribute);
+    }
+}
+
+function removeHiddenAttributeFromToDoListItems(toDosToReveal) {
+    if (!toDosToReveal) {
+        console.log(`TO DOS TO REVEAL VALUE: ${toDosToReveal} NOT LOOPING THROUGH THE ARRAY`);
+    }
+        for (let toDoToReveal of toDosToReveal) {
+        let hiddenAttribute = toDoToReveal.getAttributeNode('hidden');
+        toDoToReveal.removeAttributeNode(hiddenAttribute);
+    }
+}
+
+function addEventListenerForCheckbox(checkbox) {
+    checkbox.addEventListener('change', function() {
+        markToDoListItemDoneOrUndone(checkbox)
+});
 }
 
 function handleToDoListItemCreation() {
@@ -27,12 +55,12 @@ function handleToDoListItemCreation() {
     const toDoList = document.getElementById('to-do-list');
     console.log(`TO DO LIST ELEMENT: ${toDoList}`);
     const newToDoListItem = addToDoListItemElement(toDoInputValue);
-    const newToDoItemCheckbox = addToListItemCheckboxElement();
+    const newToDoItemCheckbox = addCheckboxElement();
     newToDoItemCheckbox.id = generateToDoCheckBoxId(newToDoListItem.id);
-    toDoList.appendChild(newToDoItemCheckbox);
+    newToDoListItem.appendChild(newToDoItemCheckbox);
     toDoList.appendChild(newToDoListItem);
-    let checkboxes = selectAllCheckboxesWithoutEventListeners();
-    addEventListenersForCheckboxes(checkboxes);
+    addEventListenerForCheckbox(newToDoItemCheckbox);
+    hideToDoBasedOnCurrentFilterValue(newToDoListItem);
 }
 
 function getNewToDoInputValue() {
@@ -63,10 +91,10 @@ function generateToDoListItemId() {
     return id; 
 }
 
-function addToListItemCheckboxElement() {
+function addCheckboxElement() {
     const newToDoItemCheckbox = document.createElement('input');
     newToDoItemCheckbox.type = 'checkbox';
-    newToDoItemCheckbox.className = 'to-do-checkbox-without-listener';
+    newToDoItemCheckbox.className = 'to-do-checkbox';
     return newToDoItemCheckbox;
 }
 
@@ -78,9 +106,22 @@ function generateToDoCheckBoxId(generatedToDoId) {
 
 function markToDoListItemDoneOrUndone(checkbox) {
     console.log(`CHECKBOX ID IN markToDoListItemDoneOrUndone: ${checkbox.id}`);
-    let lastIndexOfCheckboxId = checkbox.id.length - 1;
-    const toDoListItem = document.getElementById(checkbox.id.substring(lastIndexOfCheckboxId));
-    console.log(`TO DO LIST ITEM RETRIEVED: ${toDoListItem}`);
+    let toDoListItemId = checkbox.id.replace('checkbox-', '');
+    console.log(`TO DO LIST ITEM ID: ${toDoListItemId}`);
+    const toDoListItem = document.getElementById(toDoListItemId);
     toDoListItem.className = checkbox.checked ? DONE : UNDONE;
     console.log(`TO DO LIST ITEM CLASS: ${toDoListItem.className}`);
+    hideToDoBasedOnCurrentFilterValue(toDoListItem);
+}
+
+function hideToDoBasedOnCurrentFilterValue(toDoListItem) {
+    const filterElement = document.getElementById('to-do-filter');
+    if (filterElement.value.toLowerCase() === toDoListItem.className) {
+        const hiddenAttributeToRemove = toDoToReveal.getAttributeNode('hidden');
+        toDoListItem.removeAttributeNode(hiddenAttributeToRemove);
+    } else {
+        const hiddenAttributeToAdd = document.createAttribute('hidden');
+        toDoListItem.setAttributeNode(hiddenAttributeToAdd);
+    }
+
 }
